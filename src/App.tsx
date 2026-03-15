@@ -94,20 +94,39 @@ const LandingPage = ({ onStart }: { onStart: (mode: 'login' | 'signup' | 'guest'
         transition={{ delay: 0.3 }}
         className="flex flex-wrap items-center justify-center gap-4"
       >
-        <button onClick={() => onStart('signup')} className="px-8 py-4 bg-emerald-500 text-black font-bold rounded-2xl hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20">
+        <button onClick={() => onStart('signup')} className="px-8 py-4 bg-emerald-500 text-black font-bold rounded-2xl hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 active:scale-95">
           Get Started for Free
         </button>
-        <button onClick={() => onStart('guest')} className="px-8 py-4 bg-white/5 border border-white/10 font-bold rounded-2xl hover:bg-white/10 transition-all">
+        <button onClick={() => onStart('guest')} className="px-8 py-4 bg-white/5 border border-white/10 font-bold rounded-2xl hover:bg-white/10 transition-all active:scale-95">
           Continue as Guest
         </button>
       </motion.div>
 
-      {/* Floating Cards */}
-      <div className="relative mt-20 w-full max-w-5xl h-[400px]">
+      {/* Tech Marquee - New Interactive Element */}
+      <div className="mt-20 w-full overflow-hidden relative py-10">
+        <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-[#050505] to-transparent z-10" />
+        <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-[#050505] to-transparent z-10" />
         <motion.div 
-          animate={{ y: [0, -20, 0] }}
+          animate={{ x: [0, -1000] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="flex gap-12 items-center whitespace-nowrap"
+        >
+          {[...Array(2)].map((_, i) => (
+            <React.Fragment key={i}>
+              <div className="flex items-center gap-4 text-white/20 text-4xl font-black italic uppercase tracking-widest">
+                <Code size={40} /> PYTHON <Cpu size={40} /> JAVASCRIPT <Globe size={40} /> REACT <Database size={40} /> AI <Smartphone size={40} /> MOBILE <Sparkles size={40} /> DATA SCIENCE
+              </div>
+            </React.Fragment>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Floating Cards */}
+      <div className="relative mt-10 w-full max-w-5xl h-[400px]">
+        <motion.div 
+          animate={{ y: [0, -20, 0], rotate: [0, 2, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-64 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl"
+          className="absolute top-0 left-0 w-64 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:border-emerald-500/50 transition-colors cursor-pointer"
         >
           <div className="w-full h-32 rounded-2xl bg-emerald-500/20 mb-4 overflow-hidden">
             <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=400&q=80" className="w-full h-full object-cover opacity-50" referrerPolicy="no-referrer" />
@@ -117,9 +136,9 @@ const LandingPage = ({ onStart }: { onStart: (mode: 'login' | 'signup' | 'guest'
         </motion.div>
 
         <motion.div 
-          animate={{ y: [0, 20, 0] }}
+          animate={{ y: [0, 20, 0], rotate: [0, -2, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="absolute bottom-0 right-0 w-64 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl"
+          className="absolute bottom-0 right-0 w-64 p-4 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:border-cyan-500/50 transition-colors cursor-pointer"
         >
           <div className="w-full h-32 rounded-2xl bg-cyan-500/20 mb-4 overflow-hidden">
             <img src="https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=400&q=80" className="w-full h-full object-cover opacity-50" referrerPolicy="no-referrer" />
@@ -250,6 +269,33 @@ const Dashboard = ({ user, onSelectCourse, enrolledCourses }: { user: UserData |
         <p className="text-white/50">What would you like to learn today?</p>
       </div>
 
+      {/* Featured Hero - New Interactive Element */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full h-64 md:h-80 rounded-[40px] overflow-hidden mb-12 group cursor-pointer"
+        onClick={() => onSelectCourse(COURSES[3])} // AI with Python
+      >
+        <img src={COURSES[3].thumbnail} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" referrerPolicy="no-referrer" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent flex flex-col justify-center p-8 md:p-12">
+          <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold mb-4">
+            <Sparkles size={16} />
+            <span>FEATURED COURSE</span>
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 max-w-md">{COURSES[3].title}</h2>
+          <p className="text-white/60 mb-6 max-w-sm hidden md:block">{COURSES[3].description}</p>
+          <div className="flex items-center gap-4">
+            <button className="px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-emerald-400 transition-all">
+              Enroll Now
+            </button>
+            <div className="flex items-center gap-2 text-white/70">
+              <Users size={18} />
+              <span className="text-sm font-medium">12k+ Students</span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       <div className="flex flex-col md:flex-row gap-4 mb-12">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={20} />
@@ -296,7 +342,7 @@ const Dashboard = ({ user, onSelectCourse, enrolledCourses }: { user: UserData |
                   <span className="text-white/30 text-xs font-normal">({course.students.toLocaleString()})</span>
                 </div>
                 <div className="text-xl font-bold text-emerald-400">
-                  {enrolledCourses.includes(course.id) ? 'Enrolled' : `$${course.price}`}
+                  {enrolledCourses.includes(course.id) ? 'Enrolled' : `₹${course.price}`}
                 </div>
               </div>
             </div>
@@ -363,7 +409,7 @@ const CoursePage = ({ course, enrolled, onEnroll, onBack }: { course: Course, en
               allowFullScreen
             />
           </div>
-          <div className="text-4xl font-bold mb-6">${course.price}</div>
+          <div className="text-4xl font-bold mb-6">₹{course.price}</div>
           <button 
             onClick={onEnroll}
             className="w-full py-4 bg-emerald-500 text-black font-bold rounded-2xl hover:bg-emerald-400 transition-all shadow-xl shadow-emerald-500/20 mb-4"
@@ -512,7 +558,7 @@ const PaymentModal = ({ course, onConfirm, onClose }: { course: Course, onConfir
                 </div>
               </div>
               <button className="w-full py-4 bg-emerald-500 text-black font-bold rounded-2xl hover:bg-emerald-400 transition-all mt-4">
-                Pay ${course.price}
+                Pay ₹{course.price}
               </button>
             </form>
           </>
