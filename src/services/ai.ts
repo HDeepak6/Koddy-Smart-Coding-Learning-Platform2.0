@@ -1,26 +1,53 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function askKoddy(prompt: string, history: { role: string; parts: { text: string }[] }[]) {
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: [
-        ...history,
-        { role: "user", parts: [{ text: prompt }] }
-      ],
-      config: {
-        systemInstruction: "You are Koddy, a smart coding assistant. You help students with coding explanations, debugging, and programming concepts. Be encouraging, professional, and concise. Use markdown for code blocks.",
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 64,
-      },
-    });
+  const apiKey = process.env.GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("GEMINI_API_KEY is missing");
+    return "I'm missing my API key! Please make sure GEMINI_API_KEY is set in the environment.";
+  }
 
-    return response.text || "I couldn't generate a response.";
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+    
+    // Try primary model
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [
+          ...history,
+          { role: "user", parts: [{ text: prompt }] }
+        ],
+        config: {
+          systemInstruction: "You are Koddy, a smart coding assistant. You help students with coding explanations, debugging, and programming concepts. Be encouraging, professional, and concise. Use markdown for code blocks.",
+          temperature: 0.7,
+        },
+      });
+
+      return response.text || "I couldn't generate a response.";
+    } catch (primaryError: any) {
+      console.warn("Primary model failed, trying fallback...", primaryError);
+      
+      // Fallback to pro model if flash fails
+      const fallbackResponse = await ai.models.generateContent({
+        model: "gemini-3.1-pro-preview",
+        contents: [
+          ...history,
+          { role: "user", parts: [{ text: prompt }] }
+        ],
+        config: {
+          systemInstruction: "You are Koddy, a smart coding assistant.",
+          temperature: 0.7,
+        },
+      });
+      
+      return fallbackResponse.text || "I couldn't generate a response.";
+    }
   } catch (error: any) {
     console.error("Gemini AI Error:", error);
-    return "Sorry, I'm having trouble connecting to my brain right now. Please try again later!";
+    // Provide a bit more context in the error message for debugging
+    const errorMessage = error?.message || "Unknown error";
+    return `Sorry, I'm having trouble connecting to my brain right now. (Error: ${errorMessage.substring(0, 50)}...)`;
   }
 }

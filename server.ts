@@ -5,6 +5,7 @@ import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import 'dotenv/config';
 
 const db = new Database("koddy.db");
 const JWT_SECRET = "koddy-secret-key-2026";

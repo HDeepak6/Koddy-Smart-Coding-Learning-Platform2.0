@@ -781,10 +781,13 @@ const AIChat = () => {
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setLoading(true);
 
-    const history = messages.map(m => ({
-      role: m.role === 'ai' ? 'model' : 'user',
-      parts: [{ text: m.text }]
-    }));
+    // Ensure history starts with a user message and alternates correctly
+    const history = messages
+      .filter((m, i) => !(i === 0 && m.role === 'ai')) // Skip initial AI greeting in history
+      .map(m => ({
+        role: m.role === 'ai' ? 'model' : 'user',
+        parts: [{ text: m.text }]
+      }));
 
     const aiResponse = await askKoddy(userMsg, history);
     setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
@@ -871,10 +874,15 @@ export default function App() {
   useEffect(() => {
     const savedUser = localStorage.getItem('koddy_user');
     if (savedUser) {
-      const u = JSON.parse(savedUser);
-      setUser(u);
-      setPage('dashboard');
-      fetchEnrollments(u.id);
+      try {
+        const u = JSON.parse(savedUser);
+        setUser(u);
+        setPage('dashboard');
+        fetchEnrollments(u.id);
+      } catch (e) {
+        console.error("Failed to parse saved user", e);
+        localStorage.removeItem('koddy_user');
+      }
     }
   }, []);
 
