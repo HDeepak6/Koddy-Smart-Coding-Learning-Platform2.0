@@ -270,6 +270,169 @@ const AuthPage = ({ type, onAuth, onBack }: { type: 'login' | 'signup', onAuth: 
   );
 };
 
+const CoursesPage = ({ onSelectCourse, enrolledCourses }: { onSelectCourse: (c: Course) => void, enrolledCourses: string[] }) => {
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('All');
+
+  const filteredCourses = COURSES.filter(c => 
+    (category === 'All' || c.category === category) &&
+    (c.title.toLowerCase().includes(search.toLowerCase()) || c.instructor.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="pt-24 pb-20 px-6 max-w-7xl mx-auto">
+      <div className="mb-12">
+        <h1 className="text-4xl font-bold mb-2">Explore Courses</h1>
+        <p className="text-white/50">Browse our extensive library of professional courses.</p>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 mb-12">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={20} />
+          <input 
+            type="text" placeholder="Search for courses..."
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-12 pr-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-emerald-500 outline-none transition-all"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+          {['All', 'Python', 'JavaScript', 'Web Development', 'AI & Machine Learning', 'Data Science', 'App Development'].map(cat => (
+            <button 
+              key={cat}
+              onClick={() => setCategory(cat)}
+              className={`px-6 py-4 rounded-2xl font-medium whitespace-nowrap transition-all ${category === cat ? 'bg-emerald-500 text-black' : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredCourses.map(course => (
+          <motion.div 
+            layout
+            key={course.id}
+            onClick={() => onSelectCourse(course)}
+            className="group cursor-pointer rounded-[32px] bg-white/5 border border-white/10 overflow-hidden hover:border-emerald-500/50 transition-all"
+          >
+            <div className="relative h-48 overflow-hidden">
+              <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+              <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md text-xs font-bold text-emerald-400 border border-emerald-500/30">
+                {course.category}
+              </div>
+            </div>
+            <div className="p-6">
+              <h3 className="text-xl font-bold mb-2 line-clamp-1">{course.title}</h3>
+              <p className="text-white/50 text-sm mb-4">{course.instructor}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1 text-yellow-400">
+                  <Star size={16} fill="currentColor" />
+                  <span className="text-sm font-bold">{course.rating}</span>
+                </div>
+                <div className="text-xl font-bold text-emerald-400">
+                  {enrolledCourses.includes(course.id) ? 'Enrolled' : `₹${course.price}`}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const MyLearningPage = ({ enrolledCourses, onSelectCourse }: { enrolledCourses: string[], onSelectCourse: (c: Course) => void }) => {
+  const myCourses = COURSES.filter(c => enrolledCourses.includes(c.id));
+
+  return (
+    <div className="pt-24 pb-20 px-6 max-w-7xl mx-auto">
+      <div className="mb-12">
+        <h1 className="text-4xl font-bold mb-2">My Learning</h1>
+        <p className="text-white/50">Continue where you left off.</p>
+      </div>
+
+      {myCourses.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {myCourses.map(course => (
+            <motion.div 
+              key={course.id}
+              onClick={() => onSelectCourse(course)}
+              className="group cursor-pointer rounded-[32px] bg-white/5 border border-white/10 overflow-hidden hover:border-emerald-500/50 transition-all"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
+                  <div className="h-full bg-emerald-500 w-1/3" /> {/* Mock progress */}
+                </div>
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2 line-clamp-1">{course.title}</h3>
+                <p className="text-white/50 text-sm mb-4">{course.instructor}</p>
+                <button className="w-full py-3 bg-white/5 border border-white/10 rounded-xl font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
+                  Continue Learning
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-white/5 rounded-[40px] border border-white/10">
+          <BookOpen size={48} className="mx-auto text-white/20 mb-4" />
+          <h2 className="text-2xl font-bold mb-2">No courses yet</h2>
+          <p className="text-white/50 mb-8">You haven't enrolled in any courses yet.</p>
+          <button className="px-8 py-4 bg-emerald-500 text-black font-bold rounded-2xl hover:bg-emerald-400 transition-all">
+            Browse Courses
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ProfilePage = ({ user, enrolledCount }: { user: UserData | null, enrolledCount: number }) => {
+  if (!user) return null;
+
+  return (
+    <div className="pt-24 pb-20 px-6 max-w-3xl mx-auto">
+      <div className="p-12 rounded-[40px] bg-white/5 border border-white/10 backdrop-blur-xl text-center">
+        <div className="w-32 h-32 rounded-full bg-emerald-500/20 border-2 border-emerald-500/50 flex items-center justify-center text-emerald-400 mx-auto mb-8">
+          <User size={64} />
+        </div>
+        <h1 className="text-4xl font-bold mb-2">{user.name}</h1>
+        <p className="text-white/50 mb-12">{user.email}</p>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+            <div className="text-3xl font-bold text-emerald-400 mb-1">{enrolledCount}</div>
+            <div className="text-sm text-white/30 font-bold uppercase tracking-widest">Courses Enrolled</div>
+          </div>
+          <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+            <div className="text-3xl font-bold text-cyan-400 mb-1">12</div>
+            <div className="text-sm text-white/30 font-bold uppercase tracking-widest">Lessons Completed</div>
+          </div>
+        </div>
+
+        <div className="mt-12 space-y-4 text-left">
+          <h3 className="font-bold text-lg px-2">Account Settings</h3>
+          {[
+            { icon: <User size={18} />, label: "Edit Profile" },
+            { icon: <Bell size={18} />, label: "Notifications" },
+            { icon: <Heart size={18} />, label: "Wishlist" },
+            { icon: <CreditCard size={18} />, label: "Billing Methods" }
+          ].map((item, i) => (
+            <button key={i} className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-4 hover:bg-white/10 transition-all group">
+              <div className="text-white/30 group-hover:text-emerald-400 transition-colors">{item.icon}</div>
+              <span className="font-medium">{item.label}</span>
+              <ChevronRight size={18} className="ml-auto text-white/20" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Dashboard = ({ user, onSelectCourse, enrolledCourses }: { user: UserData | null, onSelectCourse: (c: Course) => void, enrolledCourses: string[] }) => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
@@ -793,6 +956,33 @@ export default function App() {
               user={user} 
               enrolledCourses={enrolledCourses}
               onSelectCourse={(c) => { setSelectedCourse(c); setPage('course'); }} 
+            />
+          </motion.div>
+        )}
+
+        {page === 'courses' && (
+          <motion.div key="courses" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <CoursesPage 
+              enrolledCourses={enrolledCourses}
+              onSelectCourse={(c) => { setSelectedCourse(c); setPage('course'); }} 
+            />
+          </motion.div>
+        )}
+
+        {page === 'my-learning' && (
+          <motion.div key="my-learning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <MyLearningPage 
+              enrolledCourses={enrolledCourses}
+              onSelectCourse={(c) => { setSelectedCourse(c); setPage('player'); }} 
+            />
+          </motion.div>
+        )}
+
+        {page === 'profile' && (
+          <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <ProfilePage 
+              user={user}
+              enrolledCount={enrolledCourses.length}
             />
           </motion.div>
         )}

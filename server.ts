@@ -5,6 +5,7 @@ import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import OpenAI from "openai";
 
 const db = new Database("koddy.db");
 const JWT_SECRET = "koddy-secret-key-2026";
@@ -94,6 +95,54 @@ async function startServer() {
       res.json({ success: true });
     } catch (err) {
       res.status(500).json({ error: "Enrollment failed" });
+    }
+  });
+
+  // --- AI API ---
+  app.post("/api/ai/chat", async (req, res) => {
+    const { prompt, history } = req.body;
+    const apiKey = process.env.NVIDIA_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "NVIDIA_API_KEY is not configured on the server." });
+    }
+
+    try {
+      const openai = new OpenAI({
+        apiKey: apiKey,
+        baseURL: 'https://integrate.api.nvidia.com/v1',
+      });
+
+      // Convert Gemini-style history to OpenAI-style messages
+      const messages = (history || []).map((h: any) => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts[0].text
+      }));
+
+      // Add system instruction
+      messages.unshift({
+        role: "system",
+        content: "You are Koddy, a smart coding assistant. You help students with coding explanations, debugging, and programming concepts. Be encouraging, professional, and concise. Use markdown for code blocks."
+      });
+
+      // Add current prompt
+      messages.push({
+        role: "user",
+        content: prompt
+      });
+
+      const completion = await openai.chat.completions.create({
+        model: "meta/llama-3.1-405b-instruct",
+        messages: messages,
+        temperature: 0.2,
+        top_p: 0.7,
+        max_tokens: 1024,
+      });
+
+      res.json({ message: completion.choices[0]?.message?.content || "I couldn't generate a response." });
+    } catch (error: any) {
+      console.error("NVIDIA AI Server Error:", error);
+      res.status(error.status || 500).json({ error: error.message || "AI request failed" });
     }
   });
 
