@@ -35,27 +35,49 @@ async function startServer() {
   app.use(cors());
   app.use(express.json());
 
+  // --- Health API ---
+  app.get("/api/health", (req, res) => {
+    try {
+      const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as any;
+      res.json({ status: "ok", users: userCount.count });
+    } catch (err: any) {
+      console.error("Health check failed:", err.message);
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  });
+
   // --- Auth API ---
   app.post("/api/auth/signup", (req, res) => {
+    console.log("Signup request received:", req.body.email);
     const { name, email, password } = req.body;
     try {
       const hashedPassword = bcrypt.hashSync(password, 10);
       const info = db.prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)").run(name, email, hashedPassword);
       const token = jwt.sign({ id: info.lastInsertRowid, name, email }, JWT_SECRET);
+      console.log("Signup successful for:", email);
       res.json({ token, user: { id: info.lastInsertRowid, name, email } });
     } catch (err: any) {
+      console.error("Signup error:", err.message);
       res.status(400).json({ error: err.message.includes("UNIQUE") ? "Email already exists" : "Signup failed" });
     }
   });
 
   app.post("/api/auth/login", (req, res) => {
+    console.log("Login request received:", req.body.email);
     const { email, password } = req.body;
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
-    if (user && bcrypt.compareSync(password, user.password)) {
-      const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, JWT_SECRET);
-      res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
-    } else {
-      res.status(401).json({ error: "Invalid credentials" });
+    try {
+      const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any;
+      if (user && bcrypt.compareSync(password, user.password)) {
+        const token = jwt.sign({ id: user.id, name: user.name, email: user.email }, JWT_SECRET);
+        console.log("Login successful for:", email);
+        res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+      } else {
+        console.log("Login failed: Invalid credentials for", email);
+        res.status(401).json({ error: "Invalid credentials" });
+      }
+    } catch (err: any) {
+      console.error("Login error:", err.message);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 

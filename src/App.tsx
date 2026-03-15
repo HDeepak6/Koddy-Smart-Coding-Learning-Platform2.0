@@ -187,20 +187,30 @@ const AuthPage = ({ type, onAuth, onBack }: { type: 'login' | 'signup', onAuth: 
       const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/signup';
       const body = type === 'login' ? { email, password } : { name, email, password };
       
+      console.log(`Attempting ${type} at ${endpoint}...`);
+      
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        onAuth(data.user, data.token);
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        const data = await res.json();
+        if (res.ok) {
+          onAuth(data.user, data.token);
+        } else {
+          setError(data.error || 'Authentication failed');
+        }
       } else {
-        setError(data.error);
+        const text = await res.text();
+        console.error("Server returned non-JSON response:", text);
+        setError('Server error. Please try again.');
       }
     } catch (err) {
-      setError('Connection failed');
+      console.error("Auth error:", err);
+      setError('Connection failed. Please check if the server is running.');
     } finally {
       setLoading(false);
     }
@@ -239,7 +249,14 @@ const AuthPage = ({ type, onAuth, onBack }: { type: 'login' | 'signup', onAuth: 
             className="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-emerald-500 outline-none transition-all"
           />
           
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && (
+            <div className="space-y-2">
+              <p className="text-red-400 text-sm">{error}</p>
+              {error.includes('credentials') && (
+                <p className="text-white/30 text-xs">Don't have an account? <button type="button" onClick={onBack} className="text-emerald-400 hover:underline">Sign up first</button></p>
+              )}
+            </div>
+          )}
           
           <button 
             disabled={loading}
