@@ -1,11 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 
 export async function askKoddy(prompt: string, history: { role: string; parts: { text: string }[] }[]) {
-  const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  // Check multiple possible locations for the API key
+  const apiKey = 
+    (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+    process.env.GEMINI_API_KEY || 
+    (import.meta as any).env?.GEMINI_API_KEY;
   
-  if (!apiKey) {
-    console.error("GEMINI_API_KEY is missing");
-    return "I'm missing my API key! Please make sure GEMINI_API_KEY is set in the environment.";
+  if (!apiKey || apiKey === "undefined" || apiKey === "") {
+    console.error("GEMINI_API_KEY is missing in the environment");
+    return "I'm missing my API key! Please make sure VITE_GEMINI_API_KEY is set in your Vercel Environment Variables and that you have redeployed the app.";
   }
 
   try {
