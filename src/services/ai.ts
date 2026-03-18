@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export async function askKoddy(prompt: string, history: { role: string; parts: { text: string }[] }[]) {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY;
   
   if (!apiKey) {
     console.error("GEMINI_API_KEY is missing");
